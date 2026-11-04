@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ settings.event_name }} - Get Your Pass</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- QRCode.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+  <!-- html2canvas for Ticket Download -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            cinzel: ['Cinzel', 'serif'],
+            sans: ['Outfit', 'sans-serif'],
+          },
+          colors: {
+            diwali: {
+              gold: '#F59E0B',
+              amber: '#D97706',
+              deep: '#0F051D',
+              purple: '#1E0B36',
+              maroon: '#4A0E2E',
+              glow: '#FFD700'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background: radial-gradient(circle at 50% 20%, #2a0b45 0%, #120324 50%, #080112 100%);
+      color: #F3F4F6;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .gold-gradient-text {
+      background: linear-gradient(135deg, #FFF6D1 0%, #FFD700 50%, #F59E0B 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .gold-gradient-bg {
+      background: linear-gradient(135deg, #F59E0B 0%, #D97706 50%, #B45309 100%);
+    }
+    .card-glass {
+      background: rgba(30, 11, 54, 0.65);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      box-shadow: 0 10px 35px -5px rgba(0, 0, 0, 0.5), 0 0 20px rgba(245, 158, 11, 0.15);
+    }
+    .ticket-glass {
+      background: linear-gradient(145deg, rgba(42, 13, 70, 0.95), rgba(20, 5, 36, 0.98));
+      border: 2px solid #F59E0B;
+      box-shadow: 0 0 35px rgba(245, 158, 11, 0.35);
+      position: relative;
+    }
+    /* Ticket Notch Cutouts */
+    .ticket-notch-left, .ticket-notch-right {
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      background: #080112;
+      border-radius: 50%;
+      top: 65%;
+      transform: translateY(-50%);
+      z-index: 20;
+    }
+    .ticket-notch-left { left: -14px; border-right: 2px solid #F59E0B; }
+    .ticket-notch-right { right: -14px; border-left: 2px solid #F59E0B; }
+    
+    .diya-glow {
+      filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.8));
+      animation: flicker 2.5s infinite alternate ease-in-out;
+    }
+    @keyframes flicker {
+      0%, 100% { opacity: 0.9; transform: scale(1); filter: drop-shadow(0 0 10px rgba(255, 200, 0, 0.8)); }
+      50% { opacity: 1; transform: scale(1.05); filter: drop-shadow(0 0 18px rgba(255, 120, 0, 0.95)); }
+    }
+    .diya-float {
+      animation: float 4s ease-in-out infinite alternate;
+    }
+    @keyframes float {
+      from { transform: translateY(0px); }
+      to { transform: translateY(-8px); }
+    }
+    .sparkle-bg {
+      background-image: radial-gradient(rgba(245, 158, 11, 0.15) 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+  </style>
+</head>
+<body class="font-sans antialiased sparkle-bg selection:bg-amber-500 selection:text-black">
+
+  <!-- Header Nav -->
+  <nav class="max-w-5xl mx-auto px-4 py-6 flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <span class="text-3xl diya-glow">🪔</span>
+      <div>
+        <span class="font-cinzel font-bold text-lg text-amber-300 tracking-wider block">DIWALI CELEBRATION</span>
+        <span class="text-xs text-amber-200/60 uppercase tracking-widest">Official Pass Portal</span>
+      </div>
+    </div>
+    <div class="flex items-center space-x-3">
+      <button onclick="toggleFindModal()" class="text-xs md:text-sm text-amber-300 hover:text-amber-100 bg-amber-500/10 hover:bg-amber-500/20 px-3 py-1.5 rounded-full border border-amber-500/30 transition">
+        <i class="fa-solid fa-ticket mr-1"></i> Find My Pass
+      </button>
+      <a href="/admin" class="text-xs md:text-sm text-gray-400 hover:text-amber-300 px-3 py-1.5 rounded-full border border-white/10 hover:border-amber-400/30 transition">
+        <i class="fa-solid fa-lock mr-1"></i> Organizer
+      </a>
+    </div>
+  </nav>
+
+  <!-- Main Content Container -->
+  <main class="max-w-4xl mx-auto px-4 pb-16 pt-2">
+    
+    <!-- Hero Banner -->
+    <div class="text-center mb-8 relative">
+      <div class="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-500/10 via-amber-500/20 to-amber-500/10 border border-amber-400/30 text-amber-300 text-xs md:text-sm font-medium mb-3">
+        <span>✨ You Are Cordially Invited ✨</span>
+      </div>
+      <h1 class="text-3xl md:text-5xl font-cinzel font-black gold-gradient-text tracking-wide mb-3">
+        {{ settings.event_name }}
+      </h1>
+      <p class="text-amber-100/80 max-w-xl mx-auto text-sm md:text-base mb-4 leading-relaxed">
+        {{ settings.event_description }}
+      </p>
+
+      <!-- Event Quick Info Pills -->
+      <div class="flex flex-wrap items-center justify-center gap-3 text-xs md:text-sm text-amber-200/90">
+        <div class="bg-black/30 border border-amber-500/20 px-3 py-1.5 rounded-lg flex items-center space-x-2">
+          <i class="fa-regular fa-calendar text-amber-400"></i>
+          <span>{{ settings.event_date }}</span>
+        </div>
+        <div class="bg-black/30 border border-amber-500/20 px-3 py-1.5 rounded-lg flex items-center space-x-2">
+          <i class="fa-regular fa-clock text-amber-400"></i>
+          <span>{{ settings.event_time }}</span>
+        </div>
+        <a href="{{ settings.event_location_url or '#' }}" target="_blank" title="Open in Google Maps" class="bg-black/30 hover:bg-amber-500/10 border border-amber-500/20 hover:border-amber-400/40 px-3 py-1.5 rounded-lg flex items-center space-x-2 transition group">
+          <i class="fa-solid fa-location-dot text-amber-400 group-hover:scale-110 transition"></i>
+          <span>{{ settings.event_venue }}</span>
+          <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-amber-400/70 ml-1"></i>
+        </a>
+        <a href="tel:{{ settings.event_contact }}" title="Call Host" class="bg-black/30 hover:bg-amber-500/10 border border-amber-500/20 hover:border-amber-400/40 px-3 py-1.5 rounded-lg flex items-center space-x-2 transition">
+          <i class="fa-solid fa-phone text-amber-400"></i>
+          <span>Host: {{ settings.event_contact }}</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Registration Section & Generated Pass Grid -->
+    <div id="bookingSection" class="max-w-xl mx-auto">
+      
+      <!-- Registration Card Form -->
+      <div class="card-glass rounded-2xl p-6 md:p-8 relative overflow-hidden">
+        <div class="absolute -top-12 -right-12 w-36 h-36 bg-amber-500/15 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="absolute -bottom-12 -left-12 w-36 h-36 bg-purple-500/20 rounded-full blur-2xl pointer-events-none"></div>
+
+        <div class="flex items-center justify-between pb-5 mb-5 border-b border-amber-500/20">
+          <div>
+            <h2 class="text-xl font-cinzel font-bold text-amber-300">Get Your Entry Pass</h2>
+            <p class="text-xs text-amber-200/60 mt-0.5">Instant unique pass code & QR generated for admission</p>
+          </div>
+          <span class="text-2xl diya-glow">🪔</span>
+        </div>
+
+        <form id="passForm" onsubmit="handleRegistration(event)" class="space-y-4">
+          <!-- Full Name -->
+          <div>
+            <label class="block text-xs font-medium text-amber-200/80 uppercase tracking-wider mb-1.5">
+              Full Name <span class="text-amber-400">*</span>
+            </label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-amber-400/60">
+                <i class="fa-regular fa-user"></i>
+              </span>
+              <input type="text" id="guestName" required placeholder="e.g. Rahul Sharma"
+                class="w-full pl-10 pr-4 py-2.5 bg-black/40 border border-amber-500/30 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 text-sm transition">
+            </div>
+          </div>
+
+          <!-- Phone Number -->
+          <div>
+            <label class="block text-xs font-medium text-amber-200/80 uppercase tracking-wider mb-1.5">
+              Mobile Number (WhatsApp) <span class="text-amber-400">*</span>
+            </label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-amber-400/60">
+                <i class="fa-solid fa-phone"></i>
+              </span>
+              <input type="tel" id="guestPhone" required placeholder="e.g. 9876543210"
+                class="w-full pl-10 pr-4 py-2.5 bg-black/40 border border-amber-500/30 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 text-sm transition">
+            </div>
+            <p class="text-[11px] text-amber-200/50 mt-1">Used to retrieve your pass anytime or send WhatsApp confirmation.</p>
+          </div>
+
+          <!-- Email (Optional) -->
+          <div>
+            <label class="block text-xs font-medium text-amber-200/80 uppercase tracking-wider mb-1.5">
+              Email Address <span class="text-amber-200/40 text-[10px] normal-case">(optional)</span>
+            </label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-amber-400/60">
+                <i class="fa-regular fa-envelope"></i>
+              </span>
+              <input type="email" id="guestEmail" placeholder="e.g. rahul@example.com"
+                class="w-full pl-10 pr-4 py-2.5 bg-black/40 border border-amber-500/30 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 text-sm transition">
+            </div>
+          </div>
+
+          <!-- Row: Number of Passes & Pass Category -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-amber-200/80 uppercase tracking-wider mb-1.5">
+                Passes (Admit Count)
+              </label>
+              <select id="passCount" class="w-full px-3 py-2.5 bg-black/40 border border-amber-500/30 rounded-xl text-white focus:outline-none focus:border-amber-400 text-sm">
+                <option value="1">1 Person</option>
+                <option value="2">2 Persons (Couple)</option>
+                <option value="3">3 Persons</option>
+                <option value="4">4 Persons (Family)</option>
+                <option value="5">5 Persons</option>
+                <option value="6">6+ Persons</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-amber-200/80 uppercase tracking-wider mb-1.5">
+                Pass Type
+              </label>
+              <select id="passType" class="w-full px-3 py-2.5 bg-black/40 border border-amber-500/30 rounded-xl text-white focus:outline-none focus:border-amber-400 text-sm">
+                <option value="General Pass">General Pass</option>
+                <option value="VIP Guest">VIP Guest</option>
+                <option value="Couple Pass">Couple Pass</option>
+                <option value="Family Pass">Family Pass</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Notes / Wishes -->
+          <div>
+            <label class="block text-xs font-medium text-amber-200/80 uppercase tracking-wider mb-1.5">
+              Special Note / Food Preference <span class="text-amber-200/40 text-[10px] normal-case">(optional)</span>
+            </label>
+            <input type="text" id="guestNotes" placeholder="e.g. Pure Veg, Jain Food, arriving by 8 PM"
+              class="w-full px-4 py-2 bg-black/40 border border-amber-500/30 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-amber-400 text-sm">
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" id="submitBtn"
+            class="w-full mt-4 py-3.5 px-6 rounded-xl font-cinzel font-bold text-black gold-gradient-bg hover:brightness-110 active:scale-[0.99] transition shadow-lg shadow-amber-500/25 flex items-center justify-center space-x-2 text-base">
+            <span>Generate Official Pass</span>
+            <i class="fa-solid fa-arrow-right text-sm"></i>
+          </button>
+        </form>
+      </div>
+
+    </div>
+
+    <!-- Generated Ticket Modal / Showcase (Hidden Initially) -->
+    <div id="ticketShowcase" class="hidden max-w-xl mx-auto space-y-6">
+      
+      <!-- Success Banner -->
+      <div class="text-center">
+        <div class="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-sm font-medium mb-2">
+          <i class="fa-solid fa-circle-check"></i>
+          <span>Pass Successfully Generated!</span>
+        </div>
+        <h2 class="text-2xl font-cinzel font-bold text-amber-300">Your Diwali Gala Entry Pass</h2>
+        <p class="text-xs text-amber-200/70">Show this digital pass or QR code at the entrance gate.</p>
+      </div>
+
+      <!-- THE OFFICIAL PASS (Rendered and Exportable) -->
+      <div id="printablePass" class="ticket-glass rounded-2xl overflow-hidden p-6 relative">
+        <div class="ticket-notch-left"></div>
+        <div class="ticket-notch-right"></div>
+        
+        <!-- Pass Top Header -->
+        <div class="flex items-center justify-between pb-4 border-b border-dashed border-amber-500/40">
+          <div class="flex items-center space-x-2">
+            <span class="text-2xl diya-glow">🪔</span>
+            <div>
+              <span class="font-cinzel font-extrabold text-sm text-amber-300 tracking-wider block leading-tight">DIWALI CELEBRATION PASS</span>
+              <span class="text-[10px] text-amber-400/80 uppercase tracking-widest font-semibold" id="ticketPassType">GENERAL PASS</span>
+            </div>
+          </div>
+          <div class="text-right">
+            <span class="inline-block bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full">
+              ● CONFIRMED
+            </span>
+          </div>
+        </div>
+
+        <!-- Pass Body -->
+        <div class="py-5 grid grid-cols-3 gap-4 items-center">
+          <!-- Guest Details (Left 2 cols) -->
+          <div class="col-span-2 space-y-3">
+            <div>
+              <span class="text-[10px] uppercase tracking-wider text-amber-200/60 block font-medium">Guest Name</span>
+              <span id="ticketGuestName" class="text-lg md:text-xl font-bold text-white tracking-wide block truncate">Rahul Sharma</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <span class="text-[10px] uppercase tracking-wider text-amber-200/60 block font-medium">Admit</span>
+                <span id="ticketPassCount" class="text-sm font-semibold text-amber-300">2 Persons</span>
+              </div>
+              <div>
+                <span class="text-[10px] uppercase tracking-wider text-amber-200/60 block font-medium">Contact</span>
+                <span id="ticketPhone" class="text-sm font-semibold text-gray-300">9876543210</span>
+              </div>
+            </div>
+
+            <!-- Unique Code Badge -->
+            <div class="pt-1">
+              <span class="text-[10px] uppercase tracking-wider text-amber-200/60 block font-medium">Unique Pass Code</span>
+              <div class="inline-flex items-center space-x-2 bg-black/50 border border-amber-400/50 px-3 py-1 rounded-lg">
+                <span id="ticketCode" class="font-mono font-bold text-amber-400 text-base md:text-lg tracking-widest">DWL-XXXXX</span>
+                <button onclick="copyCode()" title="Copy Code" class="text-amber-300/80 hover:text-amber-200 text-xs">
+                  <i class="fa-regular fa-copy"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- QR Code (Right 1 col) -->
+          <div class="col-span-1 flex flex-col items-center justify-center text-center">
+            <div id="qrcodeBox" class="p-2 bg-white rounded-xl shadow-lg border-2 border-amber-400 inline-block"></div>
+            <span class="text-[9px] text-amber-200/60 mt-1.5 uppercase tracking-wider font-semibold">Scan at Gate</span>
+          </div>
+        </div>
+
+        <!-- Pass Perforated Bottom Divider -->
+        <div class="pt-4 border-t border-dashed border-amber-500/40 text-xs text-amber-200/80 flex flex-wrap justify-between items-center gap-2">
+          <div>
+            <div class="font-semibold text-amber-300 text-[11px]">{{ settings.event_name }}</div>
+            <div class="text-[10px] text-amber-200/60">{{ settings.event_date }} • {{ settings.event_venue }}</div>
+          </div>
+          <div class="text-[10px] text-amber-400/80 font-mono">
+            ID: <span id="ticketGeneratedAt">2026</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons for the Pass -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <!-- Download as Image -->
+        <button onclick="downloadPassImage()" class="py-2.5 px-4 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 text-xs font-semibold flex items-center justify-center space-x-2 transition">
+          <i class="fa-solid fa-download"></i>
+          <span>Save Pass (Image)</span>
+        </button>
+
+        <!-- Share on WhatsApp -->
+        <button onclick="shareWhatsApp()" class="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center justify-center space-x-2 transition shadow-md shadow-emerald-900/30">
+          <i class="fa-brands fa-whatsapp text-sm"></i>
+          <span>Share WhatsApp</span>
+        </button>
+
+        <!-- Copy Pass Link -->
+        <button onclick="copyPassLink()" class="py-2.5 px-4 rounded-xl bg-purple-600/30 hover:bg-purple-600/40 border border-purple-500/40 text-purple-200 text-xs font-semibold flex items-center justify-center space-x-2 transition">
+          <i class="fa-solid fa-link"></i>
+          <span>Copy Pass Link</span>
+        </button>
+      </div>
+
+      <!-- Book Another Pass -->
+      <div class="text-center pt-2">
+        <button onclick="resetForm()" class="text-xs text-amber-300/80 hover:text-amber-200 underline">
+          ← Book another pass / Register another guest
+        </button>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Find My Pass Modal -->
+  <div id="findModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center px-4">
+    <div class="card-glass max-w-md w-full rounded-2xl p-6 relative border border-amber-500/40">
+      <button onclick="toggleFindModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+
+      <h3 class="text-lg font-cinzel font-bold text-amber-300 mb-1">Find Existing Pass</h3>
+      <p class="text-xs text-amber-200/60 mb-4">Enter your Pass Code (e.g. DWL-XXXXX) or registered Phone Number</p>
+
+      <div class="space-y-3">
+        <input type="text" id="lookupQuery" placeholder="Pass Code or 10-digit Phone"
+          class="w-full px-4 py-2.5 bg-black/50 border border-amber-500/40 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-amber-400 text-sm">
+        
+        <button onclick="handleLookup()" class="w-full py-2.5 rounded-xl font-bold text-black gold-gradient-bg hover:brightness-110 text-sm transition">
+          Search Pass
+        </button>
+
+        <div id="lookupResult" class="text-xs text-center min-h-[20px] pt-1"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentGuest = null;
+    let qrCodeInstance = null;
+
+    async function handleRegistration(e) {
+      e.preventDefault();
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Generating Pass...`;
+
+      const payload = {
+        name: document.getElementById('guestName').value,
+        phone: document.getElementById('guestPhone').value,
+        email: document.getElementById('guestEmail').value,
+        pass_count: parseInt(document.getElementById('passCount').value),
+        pass_type: document.getElementById('passType').value,
+        notes: document.getElementById('guestNotes').value
+      };
+
+      try {
+        const response = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          currentGuest = data.guest;
+          displayPass(currentGuest);
+          
+          // Trigger celebratory confetti!
+          confetti({
+            particleCount: 80,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#FFD700', '#F59E0B', '#EF4444', '#10B981']
+          });
+        } else {
+          alert('Error: ' + (data.error || 'Failed to generate pass'));
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Could not connect to server. Please try again.');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<span>Generate Official Pass</span> <i class="fa-solid fa-arrow-right text-sm"></i>`;
+      }
+    }
+
+    function displayPass(guest) {
+      document.getElementById('bookingSection').classList.add('hidden');
+      const showcase = document.getElementById('ticketShowcase');
+      showcase.classList.remove('hidden');
+
+      document.getElementById('ticketGuestName').innerText = guest.name;
+      document.getElementById('ticketPassCount').innerText = `${guest.pass_count} Person${guest.pass_count > 1 ? 's' : ''}`;
+      document.getElementById('ticketPhone').innerText = guest.phone;
+      document.getElementById('ticketCode').innerText = guest.code;
+      document.getElementById('ticketPassType').innerText = guest.pass_type.toUpperCase();
+      document.getElementById('ticketGeneratedAt').innerText = guest.code;
+
+      // Render QR Code
+      const qrContainer = document.getElementById('qrcodeBox');
+      qrContainer.innerHTML = '';
+      
+      const passUrl = window.location.origin + '/pass/' + guest.code;
+      
+      qrCodeInstance = new QRCode(qrContainer, {
+        text: passUrl,
+        width: 100,
+        height: 100,
+        colorDark: "#1E0B36",
+        colorLight: "#FFFFFF",
+        correctLevel: QRCode.CorrectLevel.H
+      });
+
+      // Scroll to showcase
+      showcase.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function resetForm() {
+      document.getElementById('bookingSection').classList.remove('hidden');
+      document.getElementById('ticketShowcase').classList.add('hidden');
+      document.getElementById('passForm').reset();
+      currentGuest = null;
+    }
+
+    function copyCode() {
+      if (!currentGuest) return;
+      navigator.clipboard.writeText(currentGuest.code);
+      alert(`Pass code ${currentGuest.code} copied to clipboard!`);
+    }
+
+    function copyPassLink() {
+      if (!currentGuest) return;
+      const passUrl = window.location.origin + '/pass/' + currentGuest.code;
+      navigator.clipboard.writeText(passUrl);
+      alert('Pass link copied! You can share this link with the guest.');
+    }
+
+    function shareWhatsApp() {
+      if (!currentGuest) return;
+      const passUrl = window.location.origin + '/pass/' + currentGuest.code;
+      const text = `🪔 *Diwali Party Pass Confirmed!* 🪔\n\n` +
+                   `Guest: *${currentGuest.name}*\n` +
+                   `Admit: *${currentGuest.pass_count} Guest(s)*\n` +
+                   `Pass Code: *${currentGuest.code}*\n\n` +
+                   `View & show your digital entry pass here:\n${passUrl}\n\n` +
+                   `See you at the celebration! ✨`;
+      
+      const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+      window.open(whatsappUrl, '_blank');
+    }
+
+    async function downloadPassImage() {
+      const ticketElem = document.getElementById('printablePass');
+      try {
+        const canvas = await html2canvas(ticketElem, {
+          scale: 2,
+          backgroundColor: '#0F051D',
+          useCORS: true
+        });
+        const link = document.createElement('a');
+        link.download = `Diwali_Pass_${currentGuest ? currentGuest.code : 'ticket'}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      } catch (err) {
+        console.error('Error generating image:', err);
+        alert('Could not download pass automatically. Please take a screenshot!');
+      }
+    }
+
+    function toggleFindModal() {
+      const modal = document.getElementById('findModal');
+      modal.classList.toggle('hidden');
+      document.getElementById('lookupResult').innerHTML = '';
+      document.getElementById('lookupQuery').value = '';
+    }
+
+    async function handleLookup() {
+      const query = document.getElementById('lookupQuery').value.trim();
+      const resElem = document.getElementById('lookupResult');
+      if (!query) {
+        resElem.innerHTML = `<span class="text-rose-400">Please enter a code or phone number.</span>`;
+        return;
+      }
+      resElem.innerHTML = `<span class="text-amber-300"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Searching...</span>`;
+
+      try {
+        const res = await fetch(`/api/lookup?q=${encodeURIComponent(query)}`);
+        const data = await res.json();
+        if (data.found) {
+          toggleFindModal();
+          currentGuest = data.guest;
+          displayPass(currentGuest);
+        } else {
+          resElem.innerHTML = `<span class="text-rose-400">No pass found for "${query}". Please check the details.</span>`;
+        }
+      } catch (e) {
+        resElem.innerHTML = `<span class="text-rose-400">Error searching pass.</span>`;
+      }
+    }
+  </script>
+</body>
+</html>

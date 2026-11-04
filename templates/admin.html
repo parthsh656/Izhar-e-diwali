@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin & Gate Check-in - Diwali Pass Portal</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- html5-qrcode for live camera QR scanning -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            cinzel: ['Cinzel', 'serif'],
+            sans: ['Outfit', 'sans-serif'],
+          },
+          colors: {
+            diwali: {
+              gold: '#F59E0B',
+              amber: '#D97706',
+              deep: '#0F051D',
+              purple: '#1E0B36',
+              glow: '#FFD700'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background: radial-gradient(circle at 50% 10%, #200836 0%, #100220 50%, #080112 100%);
+      color: #F3F4F6;
+      min-height: 100vh;
+    }
+    .card-glass {
+      background: rgba(26, 9, 46, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+    .gold-gradient-bg {
+      background: linear-gradient(135deg, #F59E0B 0%, #D97706 50%, #B45309 100%);
+    }
+    .gold-gradient-text {
+      background: linear-gradient(135deg, #FFF6D1 0%, #FFD700 50%, #F59E0B 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    #reader video {
+      border-radius: 12px;
+      object-fit: cover;
+    }
+  </style>
+</head>
+<body class="font-sans antialiased text-sm">
+
+  <!-- PIN Protection Overlay -->
+  <div id="pinOverlay" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="card-glass max-w-sm w-full p-6 rounded-2xl border border-amber-500/40 text-center space-y-4">
+      <span class="text-3xl">🪔</span>
+      <h2 class="text-xl font-cinzel font-bold text-amber-300">Organizer Access</h2>
+      <p class="text-xs text-amber-200/70">Enter the Admin PIN to access the gate scanner and guestlist.</p>
+      
+      <form onsubmit="handlePinSubmit(event)" class="space-y-3">
+        <input type="password" id="adminPinInput" placeholder="Enter PIN (Default: diwali2026)"
+          class="w-full px-4 py-2.5 bg-black/60 border border-amber-500/40 rounded-xl text-center text-white placeholder-gray-500 tracking-wider focus:outline-none focus:border-amber-400">
+        
+        <button type="submit" class="w-full py-2.5 rounded-xl font-bold text-black gold-gradient-bg hover:brightness-110 transition">
+          Unlock Dashboard
+        </button>
+      </form>
+      <div id="pinError" class="text-xs text-rose-400 min-h-[16px]"></div>
+      <div class="text-[11px] text-gray-500">Default PIN: <code class="text-amber-400">diwali2026</code></div>
+    </div>
+  </div>
+
+  <!-- Top Navigation -->
+  <header class="border-b border-amber-500/20 bg-black/40 backdrop-blur-md sticky top-0 z-30">
+    <div class="max-w-6xl mx-auto px-4 py-3.5 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <a href="/" class="text-2xl hover:scale-110 transition">🪔</a>
+        <div>
+          <h1 class="font-cinzel font-bold text-base text-amber-300 leading-tight">Organizer & Gate Dashboard</h1>
+          <p class="text-[11px] text-amber-200/60" id="headerEventName">Diwali Celebration Portal</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-3">
+        <a href="/" class="text-xs text-amber-300/80 hover:text-amber-200 px-3 py-1.5 rounded-lg border border-amber-500/30">
+          <i class="fa-solid fa-arrow-left mr-1"></i> Public Portal
+        </a>
+        <button onclick="lockDashboard()" class="text-xs text-gray-400 hover:text-white px-2.5 py-1.5 rounded-lg border border-white/10">
+          <i class="fa-solid fa-lock"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-6xl mx-auto px-4 py-6 space-y-6">
+
+    <!-- Live Stats Grid -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <!-- Total Registrations -->
+      <div class="card-glass p-4 rounded-xl border-l-4 border-l-amber-400">
+        <div class="text-[11px] font-medium text-amber-200/70 uppercase tracking-wider">Registrations</div>
+        <div class="text-2xl font-bold text-white mt-1" id="statTotalReg">0</div>
+        <div class="text-[10px] text-amber-200/50 mt-0.5">Total bookings</div>
+      </div>
+
+      <!-- Total Headcount (Passes) -->
+      <div class="card-glass p-4 rounded-xl border-l-4 border-l-purple-400">
+        <div class="text-[11px] font-medium text-purple-200/70 uppercase tracking-wider">Total Headcount</div>
+        <div class="text-2xl font-bold text-amber-300 mt-1" id="statTotalPasses">0</div>
+        <div class="text-[10px] text-purple-200/50 mt-0.5">Total guests expected</div>
+      </div>
+
+      <!-- Checked In Passes -->
+      <div class="card-glass p-4 rounded-xl border-l-4 border-l-emerald-400">
+        <div class="text-[11px] font-medium text-emerald-200/70 uppercase tracking-wider">Checked In</div>
+        <div class="text-2xl font-bold text-emerald-400 mt-1" id="statCheckedIn">0</div>
+        <div class="text-[10px] text-emerald-200/50 mt-0.5" id="statCheckedInPct">0% arrived</div>
+      </div>
+
+      <!-- Pending / Remaining -->
+      <div class="card-glass p-4 rounded-xl border-l-4 border-l-rose-400">
+        <div class="text-[11px] font-medium text-rose-200/70 uppercase tracking-wider">Pending Entry</div>
+        <div class="text-2xl font-bold text-rose-300 mt-1" id="statPending">0</div>
+        <div class="text-[10px] text-rose-200/50 mt-0.5">Yet to arrive</div>
+      </div>
+    </div>
+
+    <!-- Scanner & Quick Check-in Panel -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Left: Camera QR Scanner -->
+      <div class="card-glass p-5 rounded-2xl space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-qrcode text-amber-400 text-lg"></i>
+            <h2 class="font-cinzel font-bold text-base text-amber-300">Live Camera Scanner</h2>
+          </div>
+          <button id="cameraToggleBtn" onclick="toggleCameraScanner()" class="text-xs px-2.5 py-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30">
+            Start Camera
+          </button>
+        </div>
+
+        <!-- Camera Viewport Box -->
+        <div class="relative bg-black/60 rounded-xl overflow-hidden border border-amber-500/30 aspect-square flex items-center justify-center">
+          <div id="reader" class="w-full h-full"></div>
+          <div id="cameraPlaceholder" class="text-center p-4 space-y-2">
+            <i class="fa-solid fa-camera text-3xl text-gray-500"></i>
+            <p class="text-xs text-gray-400">Click "Start Camera" to scan passes directly using your phone or laptop camera.</p>
+          </div>
+        </div>
+
+        <p class="text-[11px] text-center text-amber-200/60">
+          Point camera at the QR code on the guest's pass for instant verification.
+        </p>
+      </div>
+
+      <!-- Right 2 Cols: Manual Check-In & Scan Result Card -->
+      <div class="lg:col-span-2 space-y-4">
+        
+        <!-- Manual Quick Input -->
+        <div class="card-glass p-5 rounded-2xl space-y-3">
+          <h2 class="font-cinzel font-bold text-base text-amber-300 flex items-center space-x-2">
+            <i class="fa-solid fa-barcode text-amber-400"></i>
+            <span>Manual Code Entry</span>
+          </h2>
+          <form onsubmit="handleManualCheckIn(event)" class="flex gap-2">
+            <input type="text" id="manualCodeInput" placeholder="Enter or paste code (e.g. DWL-XXXXX)"
+              class="flex-1 px-4 py-2.5 bg-black/50 border border-amber-500/30 rounded-xl text-white placeholder-gray-500 uppercase tracking-widest font-mono text-sm focus:outline-none focus:border-amber-400">
+            <button type="submit" class="px-5 py-2.5 rounded-xl font-bold text-black gold-gradient-bg hover:brightness-110 transition flex items-center space-x-1.5">
+              <i class="fa-solid fa-check"></i>
+              <span>Verify & Admit</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Real-time Verification Result Display -->
+        <div id="scanResultBox" class="card-glass p-6 rounded-2xl border-2 border-dashed border-amber-500/30 min-h-[190px] flex items-center justify-center text-center">
+          <div class="text-gray-400 space-y-1">
+            <i class="fa-solid fa-id-card-clip text-3xl text-amber-400/40 block mb-2"></i>
+            <p class="text-sm font-medium">Ready for next guest</p>
+            <p class="text-xs text-gray-500">Scan a QR code or type a pass code above.</p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Guestlist & Actions Toolbar -->
+    <div class="card-glass p-5 rounded-2xl space-y-4">
+      
+      <!-- Toolbar Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="font-cinzel font-bold text-lg text-amber-300">Guest List & Admission Records</h2>
+          <p class="text-xs text-amber-200/60">Live list of all issued passes and check-in logs</p>
+        </div>
+        
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Generate Buyer Link (One-Time Invite) -->
+          <button onclick="toggleBuyerLinkModal()" class="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black text-xs font-bold flex items-center space-x-1.5 shadow-md shadow-amber-500/20 transition">
+            <i class="fa-solid fa-link"></i>
+            <span>+ Create Buyer Link</span>
+          </button>
+
+          <!-- Add Walk-in -->
+          <button onclick="toggleWalkInModal()" class="px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30 text-xs font-semibold flex items-center space-x-1.5 transition">
+            <i class="fa-solid fa-user-plus"></i>
+            <span>Add Walk-in</span>
+          </button>
+
+          <!-- Export CSV -->
+          <button onclick="exportCSV()" class="px-3 py-1.5 rounded-lg bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-600/40 text-xs font-semibold flex items-center space-x-1.5 transition">
+            <i class="fa-solid fa-file-excel"></i>
+            <span>Export CSV</span>
+          </button>
+
+          <!-- Settings -->
+          <button onclick="toggleSettingsModal()" class="px-3 py-1.5 rounded-lg bg-white/10 text-gray-300 border border-white/20 hover:text-white text-xs font-semibold flex items-center space-x-1.5 transition">
+            <i class="fa-solid fa-gear"></i>
+            <span>Settings</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Filters & Search Bar -->
+      <div class="flex flex-col sm:flex-row gap-3 items-center justify-between pt-2">
+        <!-- Search Input -->
+        <div class="relative w-full sm:w-80">
+          <i class="fa-solid fa-search absolute left-3 top-3 text-gray-400 text-xs"></i>
+          <input type="text" id="searchInput" oninput="debounceSearch()" placeholder="Search name, phone, or code..."
+            class="w-full pl-8 pr-3 py-2 bg-black/40 border border-white/10 rounded-lg text-xs text-white placeholder-gray-500 focus:outline-none focus:border-amber-400">
+        </div>
+
+        <!-- Filter Pills -->
+        <div class="flex items-center space-x-1.5 w-full sm:w-auto">
+          <button onclick="setFilter('all')" id="filterBtn-all" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-500 text-black">
+            All (<span id="countAll">0</span>)
+          </button>
+          <button onclick="setFilter('checked_in')" id="filterBtn-checked_in" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-black/40 text-gray-300 border border-white/10 hover:border-amber-400">
+            Checked In (<span id="countChecked">0</span>)
+          </button>
+          <button onclick="setFilter('pending')" id="filterBtn-pending" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-black/40 text-gray-300 border border-white/10 hover:border-amber-400">
+            Pending (<span id="countPending">0</span>)
+          </button>
+        </div>
+      </div>
+
+      <!-- Guest Table Container -->
+      <div class="overflow-x-auto rounded-xl border border-white/10">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-black/60 text-amber-200/70 border-b border-white/10 font-cinzel">
+            <tr>
+              <th class="py-3 px-3">Pass Code</th>
+              <th class="py-3 px-3">Guest Name</th>
+              <th class="py-3 px-3">Phone</th>
+              <th class="py-3 px-3">Pass Type</th>
+              <th class="py-3 px-3 text-center">Admit</th>
+              <th class="py-3 px-3">Status</th>
+              <th class="py-3 px-3 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="guestTableBody" class="divide-y divide-white/5 text-gray-200">
+            <tr>
+              <td colspan="7" class="text-center py-8 text-gray-500">
+                <i class="fa-solid fa-spinner fa-spin mr-2"></i> Loading guest list...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Walk-In Guest Modal -->
+  <div id="walkInModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="card-glass max-w-md w-full p-6 rounded-2xl border border-amber-500/40 relative">
+      <button onclick="toggleWalkInModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+      <h3 class="text-lg font-cinzel font-bold text-amber-300 mb-1">Add Walk-In Guest</h3>
+      <p class="text-xs text-amber-200/60 mb-4">Directly issue a pass and admit the guest on the spot.</p>
+
+      <form onsubmit="handleWalkInSubmit(event)" class="space-y-3">
+        <div>
+          <label class="block text-[11px] text-amber-200/80 mb-1">Guest Name *</label>
+          <input type="text" id="walkInName" required placeholder="Guest full name"
+            class="w-full px-3 py-2 bg-black/50 border border-amber-500/40 rounded-xl text-white text-xs">
+        </div>
+        <div>
+          <label class="block text-[11px] text-amber-200/80 mb-1">Phone Number *</label>
+          <input type="tel" id="walkInPhone" required placeholder="10-digit mobile"
+            class="w-full px-3 py-2 bg-black/50 border border-amber-500/40 rounded-xl text-white text-xs">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[11px] text-amber-200/80 mb-1">Pass Count</label>
+            <select id="walkInCount" class="w-full px-3 py-2 bg-black/50 border border-amber-500/40 rounded-xl text-white text-xs">
+              <option value="1">1 Person</option>
+              <option value="2">2 Persons</option>
+              <option value="3">3 Persons</option>
+              <option value="4">4 Persons</option>
+              <option value="5">5 Persons</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[11px] text-amber-200/80 mb-1">Pass Type</label>
+            <select id="walkInType" class="w-full px-3 py-2 bg-black/50 border border-amber-500/40 rounded-xl text-white text-xs">
+              <option value="General Pass">General Pass</option>
+              <option value="VIP Guest">VIP Guest</option>
+              <option value="Family Pass">Family Pass</option>
+            </select>
+          </div>
+        </div>
+        <div class="pt-2 flex items-center space-x-2">
+          <input type="checkbox" id="walkInCheckInNow" checked class="rounded border-amber-500 text-amber-500 focus:ring-0">
+          <label for="walkInCheckInNow" class="text-xs text-amber-300">Mark as Checked-In immediately</label>
+        </div>
+        <button type="submit" class="w-full py-2.5 mt-2 rounded-xl font-bold text-black gold-gradient-bg hover:brightness-110 text-xs transition">
+          Issue Pass & Confirm
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Event Settings Modal -->
+  <div id="settingsModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="card-glass max-w-md w-full p-6 rounded-2xl border border-amber-500/40 relative">
+      <button onclick="toggleSettingsModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+      <h3 class="text-lg font-cinzel font-bold text-amber-300 mb-1">Event Details & Settings</h3>
+      <p class="text-xs text-amber-200/60 mb-4">Changes will reflect across passes and public portal.</p>
+
+      <form onsubmit="handleSettingsSubmit(event)" class="space-y-3">
+        <div>
+          <label class="block text-[11px] text-amber-200/80 mb-1">Event Name</label>
+          <input type="text" id="settingEventName" required class="w-full px-3 py-2 bg-black/50 border border-amber-500/40 rounded-xl text-white text-xs">
+        </div>
+        <div>
+          <label class="block text-[11px] text-amber-200/80 mb-1">Date</label>
+          <input type="text" id="settingEventDate" required class="w-full px-3 py-2 bg-black/50 border border-amber-500/40 rounded-xl text-white text-xs">
+        </div>
+        <div>
+          <label class="block text-[11px] text-amber-200/80 mb-1">Time</label>
+          <input type="text" id="settingEventTime" required class="w-full px-3 py-2 bg-black/50 border border-amber-500/40 rounded-xl text-white text-xs">
+        </div>
+        <div>
+          <label class="block text-[11px] text-amber-200/80 mb-1">Venue</label>
+          <input type="text" id="settingEventVenue" required class="w-full px-3 py-2 bg-black/50 border border-amber-500/40 rounded-xl text-white text-xs">
+        </div>
+        <div>
+          <label class="block text-[11px] text-amber-200/80 mb-1">Admin PIN (Password)</label>
+          <input type="text" id="settingAdminPin" required class="w-full px-3 py-2 bg-black/50 border border-amber-500/40 rounded-xl text-white text-xs font-mono">
+        </div>
+        <button type="submit" class="w-full py-2.5 mt-2 rounded-xl font-bold text-black gold-gradient-bg hover:brightness-110 text-xs transition">
+          Save Settings
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Buyer Links (One-Time Invites) Modal -->
+  <div id="buyerLinkModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="card-glass max-w-xl w-full p-6 rounded-2xl border border-amber-500/40 relative max-h-[90vh] overflow-y-auto">
+      <button onclick="toggleBuyerLinkModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+
+      <div class="flex items-center space-x-2 mb-1">
+        <span class="text-xl">🔗</span>
+        <h3 class="text-lg font-cinzel font-bold text-amber-300">Single-Use Buyer Links</h3>
+      </div>
+      <p class="text-xs text-amber-200/70 mb-4">
+        Each link burns itself after 1 registration. Buyers cannot forward it to let friends register for free.
+      </p>
+
+      <!-- Generate Box -->
+      <div class="bg-black/50 border border-amber-500/30 rounded-xl p-4 mb-5 space-y-3">
+        <div class="font-semibold text-xs text-amber-300">Generate New Invite Link</div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[10px] text-amber-200/80 mb-1">Passes Paid For</label>
+            <select id="tokenPassCount" class="w-full px-2.5 py-1.5 bg-black/60 border border-amber-500/40 rounded-lg text-white text-xs">
+              <option value="1">1 Person</option>
+              <option value="2">2 Persons (Couple)</option>
+              <option value="3">3 Persons</option>
+              <option value="4">4 Persons (Family)</option>
+              <option value="5">5 Persons</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] text-amber-200/80 mb-1">Pass Type</label>
+            <select id="tokenPassType" class="w-full px-2.5 py-1.5 bg-black/60 border border-amber-500/40 rounded-lg text-white text-xs">
+              <option value="General Pass">General Pass</option>
+              <option value="VIP Guest">VIP Guest</option>
+              <option value="Couple Pass">Couple Pass</option>
+              <option value="Family Pass">Family Pass</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-[10px] text-amber-200/80 mb-1">Buyer Note / Reference (optional)</label>
+          <input type="text" id="tokenBuyerNote" placeholder="e.g. Paid Rs 1000 GPay - Rohan"
+            class="w-full px-3 py-1.5 bg-black/60 border border-amber-500/40 rounded-lg text-white text-xs">
+        </div>
+        <button onclick="handleCreateToken()" class="w-full py-2 rounded-xl font-bold text-black gold-gradient-bg hover:brightness-110 text-xs transition flex items-center justify-center space-x-1.5">
+          <i class="fa-solid fa-plus"></i>
+          <span>Generate Single-Use Link</span>
+        </button>
+
+        <!-- Generated Link Result (Hidden until created) -->
+        <div id="generatedLinkResult" class="hidden pt-2 border-t border-dashed border-amber-500/30 space-y-2">
+          <div class="text-[11px] text-emerald-300 font-semibold flex items-center gap-1">
+            <i class="fa-solid fa-check"></i> <span>Link Ready! Send this to the buyer:</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <input type="text" id="generatedLinkInput" readonly
+              class="flex-1 px-2.5 py-1.5 bg-black/80 border border-emerald-500/50 rounded-lg text-white font-mono text-[11px]">
+            <button onclick="copyGeneratedLink()" class="px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-semibold hover:bg-amber-500/30">
+              Copy
+            </button>
+            <button onclick="whatsappGeneratedLink()" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold">
+              <i class="fa-brands fa-whatsapp"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Existing Tokens List -->
+      <div class="space-y-2">
+        <div class="font-semibold text-xs text-amber-300 flex items-center justify-between">
+          <span>Previously Generated Links</span>
+          <button onclick="loadTokens()" class="text-[10px] text-gray-400 hover:text-white underline">Refresh</button>
+        </div>
+        <div class="overflow-x-auto rounded-xl border border-white/10 max-h-52 overflow-y-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-black/60 text-amber-200/70 border-b border-white/10">
+              <tr>
+                <th class="py-2 px-2.5">Token Code</th>
+                <th class="py-2 px-2.5">Passes</th>
+                <th class="py-2 px-2.5">Note</th>
+                <th class="py-2 px-2.5">Status</th>
+                <th class="py-2 px-2.5 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="tokenTableBody" class="divide-y divide-white/5 text-gray-300">
+              <tr><td colspan="5" class="py-4 text-center text-gray-500">Loading links...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Audio Chimes for Scan Feedback using Web Audio API -->
+  <script>
+    let adminToken = localStorage.getItem('diwali_admin_pin') || '';
+    let html5QrScanner = null;
+    let isCameraActive = false;
+    let currentFilter = 'all';
+    let searchTimeout = null;
+    let allGuestsData = [];
+
+    // Synthesized sound effects (no external audio files required!)
+    function playBeep(type) {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        if (type === 'success') {
+          // Cheerful chime: two ascending tones
+          osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+          osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.12); // A5
+          gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.4);
+        } else if (type === 'warning') {
+          // Warning double buzz
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+          gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.5);
+        } else {
+          // Error low buzz
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+          gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.4);
+        }
+      } catch (e) {
+        console.log('Audio not supported or blocked');
+      }
+    }
+
+    // PIN Authentication
+    function checkAuth() {
+      if (adminToken) {
+        document.getElementById('pinOverlay').classList.add('hidden');
+        loadDashboard();
+      } else {
+        document.getElementById('pinOverlay').classList.remove('hidden');
+      }
+    }
+
+    async function handlePinSubmit(e) {
+      e.preventDefault();
+      const pin = document.getElementById('adminPinInput').value.trim();
+      const errElem = document.getElementById('pinError');
+      errElem.innerText = '';
+
+      try {
+        const res = await fetch(`/api/admin/verify-pin?pin=${encodeURIComponent(pin)}`);
+        const data = await res.json();
+        if (data.valid) {
+          adminToken = pin;
+          localStorage.setItem('diwali_admin_pin', pin);
+          document.getElementById('pinOverlay').classList.add('hidden');
+          loadDashboard();
+        } else {
+          errElem.innerText = 'Incorrect PIN. Please try again.';
+        }
+      } catch (err) {
+        errElem.innerText = 'Server connection error.';
+      }
+    }
+
+    function lockDashboard() {
+      localStorage.removeItem('diwali_admin_pin');
+      adminToken = '';
+      if (isCameraActive) toggleCameraScanner();
+      checkAuth();
+    }
+
+    // Load Data
+    async function loadDashboard() {
+      await Promise.all([loadStats(), loadGuests(), loadSettings()]);
+    }
+
+    async function loadStats() {
+      try {
+        const res = await fetch(`/api/admin/stats?pin=${encodeURIComponent(adminToken)}`);
+        const stats = await res.json();
+        document.getElementById('statTotalReg').innerText = stats.total_registrations;
+        document.getElementById('statTotalPasses').innerText = stats.total_passes;
+        document.getElementById('statCheckedIn').innerText = `${stats.checked_in_passes} / ${stats.total_passes}`;
+        
+        const pct = stats.total_passes > 0 ? Math.round((stats.checked_in_passes / stats.total_passes) * 100) : 0;
+        document.getElementById('statCheckedInPct').innerText = `${pct}% arrived`;
+        document.getElementById('statPending').innerText = stats.pending_passes;
+
+        document.getElementById('countAll').innerText = stats.total_registrations;
+        document.getElementById('countChecked').innerText = stats.checked_in_registrations;
+        document.getElementById('countPending').innerText = stats.pending_registrations;
+      } catch (e) {
+        console.error('Error loading stats:', e);
+      }
+    }
+
+    async function loadGuests() {
+      const search = document.getElementById('searchInput').value.trim();
+      try {
+        const res = await fetch(`/api/admin/guests?pin=${encodeURIComponent(adminToken)}&search=${encodeURIComponent(search)}&filter=${currentFilter}`);
+        const data = await res.json();
+        allGuestsData = data.guests;
+        renderGuestTable(allGuestsData);
+      } catch (e) {
+        console.error('Error loading guests:', e);
+      }
+    }
+
+    function renderGuestTable(guests) {
+      const tbody = document.getElementById('guestTableBody');
+      if (!guests || guests.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-gray-400">No guests found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = guests.map(g => `
+        <tr class="hover:bg-white/5 transition">
+          <td class="py-3 px-3 font-mono font-bold text-amber-400">${g.code}</td>
+          <td class="py-3 px-3 font-semibold text-white">
+            ${g.name}
+            ${g.notes ? `<span class="block text-[10px] text-gray-400 italic">${g.notes}</span>` : ''}
+          </td>
+          <td class="py-3 px-3 text-gray-300 font-mono">${g.phone}</td>
+          <td class="py-3 px-3">
+            <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+              ${g.pass_type}
+            </span>
+          </td>
+          <td class="py-3 px-3 text-center font-bold text-amber-300">${g.pass_count}</td>
+          <td class="py-3 px-3">
+            ${g.checked_in 
+              ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center w-max gap-1">
+                  <i class="fa-solid fa-check"></i> Arrived (${g.checked_in_at || 'Done'})
+                </span>`
+              : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-300/80 border border-amber-500/20 flex items-center w-max gap-1">
+                  <i class="fa-regular fa-clock"></i> Pending
+                </span>`
+            }
+          </td>
+          <td class="py-3 px-3 text-right space-x-2">
+            <button onclick="toggleCheckInGuest(${g.id})" title="${g.checked_in ? 'Undo Check-in' : 'Check In'}"
+              class="px-2.5 py-1 rounded text-[11px] font-semibold transition ${g.checked_in ? 'bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 border border-amber-500/40' : 'bg-emerald-600 hover:bg-emerald-500 text-white'}">
+              ${g.checked_in ? '<i class="fa-solid fa-rotate-left mr-1"></i> Undo' : '<i class="fa-solid fa-check mr-1"></i> Admit'}
+            </button>
+            <a href="/pass/${g.code}" target="_blank" title="View Pass" class="text-gray-400 hover:text-amber-300 text-xs px-1">
+              <i class="fa-solid fa-up-right-from-square"></i>
+            </a>
+            <button onclick="deleteGuestConfirm(${g.id}, '${g.name}')" title="Delete" class="text-rose-400 hover:text-rose-300 text-xs px-1">
+              <i class="fa-regular fa-trash-can"></i>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Check In Logic (Manual or Scan)
+    async function processCheckIn(code) {
+      code = code.trim().toUpperCase();
+      // If code was scanned as a URL (e.g. http://.../pass/DWL-XXXX), extract the code
+      if (code.includes('/pass/')) {
+        code = code.split('/pass/').pop().split('?')[0].split('#')[0].trim();
+      }
+
+      const resultBox = document.getElementById('scanResultBox');
+      resultBox.innerHTML = `
+        <div class="text-amber-300 animate-pulse">
+          <i class="fa-solid fa-spinner fa-spin text-2xl mb-1"></i>
+          <div>Verifying pass ${code}...</div>
+        </div>
+      `;
+
+      try {
+        const res = await fetch('/api/admin/checkin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: code, pin: adminToken })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          playBeep('success');
+          const g = data.guest;
+          resultBox.innerHTML = `
+            <div class="w-full bg-emerald-950/40 border border-emerald-500/50 rounded-xl p-4 text-center space-y-2">
+              <div class="inline-flex items-center space-x-2 text-emerald-400 text-sm font-bold uppercase tracking-wider">
+                <i class="fa-solid fa-circle-check text-xl"></i>
+                <span>PASS VERIFIED & ADMITTED!</span>
+              </div>
+              <div class="text-xl md:text-2xl font-bold text-white">${g.name}</div>
+              <div class="flex justify-center items-center gap-3 text-xs font-semibold">
+                <span class="bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded-md border border-amber-500/30">
+                  Admit: ${g.pass_count} Guest${g.pass_count > 1 ? 's' : ''}
+                </span>
+                <span class="bg-purple-500/20 text-purple-300 px-2.5 py-1 rounded-md border border-purple-500/30">
+                  ${g.pass_type}
+                </span>
+                <span class="font-mono text-gray-300">${g.code}</span>
+              </div>
+              <div class="text-[11px] text-emerald-300/80">Welcome to Diwali Gala Night! 🪔</div>
+            </div>
+          `;
+          loadStats();
+          loadGuests();
+        } else if (data.already_checked_in) {
+          playBeep('warning');
+          const g = data.guest;
+          resultBox.innerHTML = `
+            <div class="w-full bg-amber-950/40 border border-amber-500/60 rounded-xl p-4 text-center space-y-2">
+              <div class="inline-flex items-center space-x-2 text-amber-400 text-sm font-bold uppercase tracking-wider">
+                <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+                <span>ALREADY CHECKED IN!</span>
+              </div>
+              <div class="text-lg font-bold text-white">${g.name}</div>
+              <p class="text-xs text-amber-200">
+                This pass was already admitted at <strong>${g.checked_in_at || 'earlier'}</strong>.
+              </p>
+              <div class="text-[11px] text-gray-400 font-mono">Code: ${g.code} | Headcount: ${g.pass_count}</div>
+            </div>
+          `;
+        } else {
+          playBeep('error');
+          resultBox.innerHTML = `
+            <div class="w-full bg-rose-950/40 border border-rose-500/60 rounded-xl p-4 text-center space-y-2">
+              <div class="inline-flex items-center space-x-2 text-rose-400 text-sm font-bold uppercase tracking-wider">
+                <i class="fa-solid fa-circle-xmark text-xl"></i>
+                <span>INVALID PASS CODE</span>
+              </div>
+              <p class="text-xs text-rose-200">No guest record found with code: <strong>${code}</strong></p>
+            </div>
+          `;
+        }
+      } catch (err) {
+        resultBox.innerHTML = `<span class="text-rose-400">Network error while verifying pass.</span>`;
+      }
+    }
+
+    function handleManualCheckIn(e) {
+      e.preventDefault();
+      const codeInput = document.getElementById('manualCodeInput');
+      const code = codeInput.value.trim();
+      if (!code) return;
+      processCheckIn(code);
+      codeInput.value = '';
+    }
+
+    // Camera QR Scanner Toggle
+    function toggleCameraScanner() {
+      const btn = document.getElementById('cameraToggleBtn');
+      const placeholder = document.getElementById('cameraPlaceholder');
+
+      if (isCameraActive) {
+        if (html5QrScanner) {
+          html5QrScanner.stop().then(() => {
+            html5QrScanner.clear();
+            isCameraActive = false;
+            btn.innerText = 'Start Camera';
+            btn.classList.remove('bg-rose-500/20', 'text-rose-300', 'border-rose-500/40');
+            placeholder.classList.remove('hidden');
+          }).catch(err => console.error(err));
+        }
+      } else {
+        placeholder.classList.add('hidden');
+        html5QrScanner = new Html5Qrcode("reader");
+        
+        const config = { fps: 10, qrbox: { width: 220, height: 220 } };
+        html5QrScanner.start(
+          { facingMode: "environment" },
+          config,
+          (decodedText) => {
+            // Success QR Scan
+            processCheckIn(decodedText);
+          },
+          (errorMessage) => {
+            // Ignore scan frame misses
+          }
+        ).then(() => {
+          isCameraActive = true;
+          btn.innerText = 'Stop Camera';
+          btn.classList.add('bg-rose-500/20', 'text-rose-300', 'border-rose-500/40');
+        }).catch(err => {
+          console.error("Camera start failed", err);
+          alert("Could not access camera. Please allow camera permissions or enter pass code manually.");
+          placeholder.classList.remove('hidden');
+        });
+      }
+    }
+
+    // Toggle Check In from Table
+    async function toggleCheckInGuest(guestId) {
+      try {
+        const res = await fetch(`/api/admin/toggle-checkin/${guestId}?pin=${encodeURIComponent(adminToken)}`, {
+          method: 'POST'
+        });
+        const data = await res.json();
+        if (data.success) {
+          loadStats();
+          loadGuests();
+        }
+      } catch (e) {
+        alert('Could not update check-in status');
+      }
+    }
+
+    // Delete Guest
+    async function deleteGuestConfirm(guestId, name) {
+      if (!confirm(`Are you sure you want to remove pass for "${name}"? This cannot be undone.`)) return;
+      try {
+        const res = await fetch(`/api/admin/guests/${guestId}?pin=${encodeURIComponent(adminToken)}`, {
+          method: 'DELETE'
+        });
+        const data = await res.json();
+        if (data.success) {
+          loadStats();
+          loadGuests();
+        }
+      } catch (e) {
+        alert('Error deleting guest');
+      }
+    }
+
+    // Filter & Search Controls
+    function setFilter(filter) {
+      currentFilter = filter;
+      ['all', 'checked_in', 'pending'].forEach(f => {
+        const btn = document.getElementById(`filterBtn-${f}`);
+        if (f === filter) {
+          btn.className = 'px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-500 text-black';
+        } else {
+          btn.className = 'px-3 py-1.5 rounded-lg text-xs font-medium bg-black/40 text-gray-300 border border-white/10 hover:border-amber-400';
+        }
+      });
+      loadGuests();
+    }
+
+    function debounceSearch() {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(loadGuests, 250);
+    }
+
+    // Walk-in Modal Handlers
+    function toggleWalkInModal() {
+      document.getElementById('walkInModal').classList.toggle('hidden');
+    }
+
+    async function handleWalkInSubmit(e) {
+      e.preventDefault();
+      const payload = {
+        name: document.getElementById('walkInName').value,
+        phone: document.getElementById('walkInPhone').value,
+        pass_count: parseInt(document.getElementById('walkInCount').value),
+        pass_type: document.getElementById('walkInType').value,
+        check_in_now: document.getElementById('walkInCheckInNow').checked,
+        pin: adminToken
+      };
+
+      try {
+        const res = await fetch('/api/admin/guests/walkin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+          toggleWalkInModal();
+          document.getElementById('walkInName').value = '';
+          document.getElementById('walkInPhone').value = '';
+          loadStats();
+          loadGuests();
+          processCheckIn(data.guest.code);
+        } else {
+          alert('Error: ' + data.error);
+        }
+      } catch (err) {
+        alert('Failed to add walk-in guest');
+      }
+    }
+
+    // Event Settings Handlers
+    function toggleSettingsModal() {
+      document.getElementById('settingsModal').classList.toggle('hidden');
+    }
+
+    async function loadSettings() {
+      try {
+        const res = await fetch('/api/admin/settings');
+        const settings = await res.json();
+        document.getElementById('headerEventName').innerText = settings.event_name || 'Diwali Celebration Portal';
+        document.getElementById('settingEventName').value = settings.event_name || '';
+        document.getElementById('settingEventDate').value = settings.event_date || '';
+        document.getElementById('settingEventTime').value = settings.event_time || '';
+        document.getElementById('settingEventVenue').value = settings.event_venue || '';
+        document.getElementById('settingAdminPin').value = settings.admin_pin || 'diwali2026';
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function handleSettingsSubmit(e) {
+      e.preventDefault();
+      const payload = {
+        event_name: document.getElementById('settingEventName').value,
+        event_date: document.getElementById('settingEventDate').value,
+        event_time: document.getElementById('settingEventTime').value,
+        event_venue: document.getElementById('settingEventVenue').value,
+        admin_pin: document.getElementById('settingAdminPin').value,
+        pin: adminToken
+      };
+
+      try {
+        const res = await fetch('/api/admin/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert('Settings successfully updated!');
+          adminToken = payload.admin_pin;
+          localStorage.setItem('diwali_admin_pin', adminToken);
+          toggleSettingsModal();
+          loadSettings();
+        }
+      } catch (err) {
+        alert('Failed to update settings');
+      }
+    }
+
+    // Buyer Link (One-Time Token) Functions
+    let lastGeneratedLink = '';
+    let lastGeneratedNote = '';
+
+    function toggleBuyerLinkModal() {
+      const modal = document.getElementById('buyerLinkModal');
+      modal.classList.toggle('hidden');
+      if (!modal.classList.contains('hidden')) {
+        loadTokens();
+      }
+    }
+
+    async function handleCreateToken() {
+      const count = parseInt(document.getElementById('tokenPassCount').value);
+      const type = document.getElementById('tokenPassType').value;
+      const note = document.getElementById('tokenBuyerNote').value.trim();
+
+      try {
+        const res = await fetch('/api/admin/tokens', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            pass_count: count,
+            pass_type: type,
+            buyer_note: note,
+            pin: adminToken
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          const token = data.token;
+          const url = window.location.origin + '/claim/' + token.token;
+          lastGeneratedLink = url;
+          lastGeneratedNote = note;
+
+          document.getElementById('generatedLinkInput').value = url;
+          document.getElementById('generatedLinkResult').classList.remove('hidden');
+          document.getElementById('tokenBuyerNote').value = '';
+          loadTokens();
+        } else {
+          alert('Error generating link');
+        }
+      } catch (e) {
+        alert('Network error generating link');
+      }
+    }
+
+    function copyGeneratedLink() {
+      if (!lastGeneratedLink) return;
+      navigator.clipboard.writeText(lastGeneratedLink);
+      alert('One-time link copied to clipboard!');
+    }
+
+    function whatsappGeneratedLink() {
+      if (!lastGeneratedLink) return;
+      const text = `🪔 *Diwali Party Pass Claim Link* 🪔\n\n` +
+                   `Hi! Here is your private link to claim your official entry pass for Diwali Gala Night at *Urban Forest Cafe and Restaurant*:\n\n` +
+                   `🔗 ${lastGeneratedLink}\n\n` +
+                   `⚠️ *Note:* This is a single-use private link. Once you submit your details, your pass will be locked to your name.\n\n` +
+                   `See you there! ✨`;
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+    }
+
+    async function loadTokens() {
+      const tbody = document.getElementById('tokenTableBody');
+      try {
+        const res = await fetch(`/api/admin/tokens?pin=${encodeURIComponent(adminToken)}`);
+        const data = await res.json();
+        const tokens = data.tokens;
+
+        if (!tokens || tokens.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-gray-500">No links generated yet.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = tokens.map(t => {
+          const url = window.location.origin + '/claim/' + t.token;
+          return `
+            <tr class="hover:bg-white/5 transition">
+              <td class="py-2 px-2.5 font-mono font-bold text-amber-400 text-[11px]">${t.token}</td>
+              <td class="py-2 px-2.5 text-white font-semibold text-[11px]">${t.pass_count} (${t.pass_type})</td>
+              <td class="py-2 px-2.5 text-gray-400 text-[10px]">${t.buyer_note || '—'}</td>
+              <td class="py-2 px-2.5">
+                ${t.is_used
+                  ? `<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-white/10 text-gray-300">
+                      Claimed by ${t.used_by_name}
+                     </span>`
+                  : `<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                      Available (Unclaimed)
+                     </span>`
+                }
+              </td>
+              <td class="py-2 px-2.5 text-right space-x-1.5">
+                ${!t.is_used ? `
+                  <button onclick="copySpecificLink('${url}')" title="Copy Link" class="text-amber-400 hover:text-amber-300 text-[11px]">
+                    <i class="fa-regular fa-copy"></i>
+                  </button>
+                  <button onclick="whatsappSpecificLink('${url}', '${t.buyer_note || ''}')" title="WhatsApp" class="text-emerald-400 hover:text-emerald-300 text-[11px]">
+                    <i class="fa-brands fa-whatsapp"></i>
+                  </button>
+                  <button onclick="deleteTokenConfirm(${t.id}, '${t.token}')" title="Delete" class="text-rose-400 hover:text-rose-300 text-[11px]">
+                    <i class="fa-regular fa-trash-can"></i>
+                  </button>
+                ` : `
+                  <a href="/pass/${t.generated_pass_code}" target="_blank" class="text-amber-300 hover:underline text-[10px]">
+                    View Pass (${t.generated_pass_code})
+                  </a>
+                `}
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-rose-400">Failed to load links.</td></tr>`;
+      }
+    }
+
+    function copySpecificLink(url) {
+      navigator.clipboard.writeText(url);
+      alert('Link copied: ' + url);
+    }
+
+    function whatsappSpecificLink(url, note) {
+      const text = `🪔 *Diwali Party Pass Claim Link* 🪔\n\n` +
+                   `Hi! Here is your private link to claim your entry pass for Diwali Gala Night at *Urban Forest Cafe and Restaurant*:\n\n` +
+                   `🔗 ${url}\n\n` +
+                   `⚠️ *Note:* This is a single-use private link. Once you submit your details, your pass is confirmed.\n\n` +
+                   `See you there! ✨`;
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+    }
+
+    async function deleteTokenConfirm(id, token) {
+      if (!confirm(`Delete unused invite token ${token}?`)) return;
+      try {
+        const res = await fetch(`/api/admin/tokens/${id}?pin=${encodeURIComponent(adminToken)}`, {
+          method: 'DELETE'
+        });
+        const data = await res.json();
+        if (data.success) {
+          loadTokens();
+        }
+      } catch (e) {
+        alert('Error deleting link');
+      }
+    }
+
+    // Export CSV
+    function exportCSV() {
+      window.location.href = `/api/admin/export-csv?pin=${encodeURIComponent(adminToken)}`;
+    }
+
+    // Check auth on load
+    window.addEventListener('DOMContentLoaded', checkAuth);
+  </script>
+</body>
+</html>
