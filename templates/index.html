@@ -102,7 +102,7 @@
     <div class="flex items-center space-x-3">
       <span class="text-3xl moon-glow">🌙</span>
       <div>
-        <span class="font-cinzel font-bold text-lg text-amber-300 tracking-wider block">SUFI NIGHT LIVE</span>
+        <span class="font-cinzel font-bold text-lg text-amber-300 tracking-wider block">IZHAR-E-DIWALI</span>
         <span class="text-xs text-amber-200/60 uppercase tracking-widest">Urban Forest Cafe & Restaurant</span>
       </div>
     </div>
@@ -122,7 +122,7 @@
     <!-- Hero Banner -->
     <div class="text-center mb-8 relative">
       <div class="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-500/10 via-amber-500/20 to-amber-500/10 border border-amber-400/30 text-amber-300 text-xs md:text-sm font-medium mb-3">
-        <span>🌙 A Soulful Evening of Live Sufi & Mystic Melodies 🎶</span>
+        <span>🌙 Soulful Sufi Music, Poetry & Festive Celebrations 🪔✨</span>
       </div>
       <h1 class="text-3xl md:text-5xl font-cinzel font-black gold-gradient-text tracking-wide mb-3">
         {{ settings.event_name }}
@@ -271,7 +271,7 @@
           <i class="fa-solid fa-circle-check"></i>
           <span>Pass Successfully Generated!</span>
         </div>
-        <h2 class="text-2xl font-cinzel font-bold text-amber-300">Your Sufi Night Entry Pass</h2>
+        <h2 class="text-2xl font-cinzel font-bold text-amber-300">Your Izhar-e-Diwali Entry Pass</h2>
         <p class="text-xs text-amber-200/70">Show this digital pass or QR code at the entrance of Urban Forest Cafe.</p>
       </div>
 
@@ -285,7 +285,7 @@
           <div class="flex items-center space-x-2">
             <span class="text-2xl moon-glow">🌙</span>
             <div>
-              <span class="font-cinzel font-extrabold text-sm text-amber-300 tracking-wider block leading-tight">SUFI NIGHT ENTRY PASS</span>
+              <span class="font-cinzel font-extrabold text-sm text-amber-300 tracking-wider block leading-tight">IZHAR-E-DIWALI PASS</span>
               <span class="text-[10px] text-amber-400/80 uppercase tracking-widest font-semibold" id="ticketPassType">COUPLE PASS</span>
             </div>
           </div>
@@ -506,14 +506,14 @@
     function shareWhatsApp() {
       if (!currentGuest) return;
       const passUrl = window.location.origin + '/pass/' + currentGuest.code;
-      const text = `🌙 *Sufi Night Pass Confirmed!* 🎶\n\n` +
+      const text = `🌙 *Izhar-e-Diwali Pass Confirmed!* 🪔🎶\n\n` +
                    `Guest: *${currentGuest.name}*\n` +
                    `Admit: *${currentGuest.pass_count} Person(s)*\n` +
                    `Pass Code: *${currentGuest.code}*\n` +
                    `Date: *11th November • 7:00 PM Onwards*\n` +
                    `Venue: *Urban Forest Cafe and Restaurant*\n\n` +
                    `View & show your digital entry pass here:\n${passUrl}\n\n` +
-                   `See you for a magical evening of live Sufi melodies! ✨`;
+                   `See you for an enchanting evening of music & poetry! ✨`;
       
       const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
       window.open(whatsappUrl, '_blank');

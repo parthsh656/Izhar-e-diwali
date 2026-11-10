@@ -21,7 +21,7 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
     host = os.environ.get("HOST", "0.0.0.0")
     print("\n" + "=" * 55)
-    print("Sufi Night Pass Portal (Urban Forest) is starting up!")
+    print("Izhar-e-Diwali Pass Portal (Urban Forest) is starting up!")
     print("=" * 55)
     print(f"Public Pass Registration: http://localhost:{port}")
     print(f"Organizer & Gate Scanner: http://localhost:{port}/admin")

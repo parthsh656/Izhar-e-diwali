@@ -90,7 +90,7 @@
       <div class="flex items-center space-x-3">
         <a href="/" class="text-2xl hover:scale-110 transition">🌙</a>
         <div>
-          <h1 class="font-cinzel font-bold text-base text-amber-300 leading-tight">Sufi Night - Gate Scanner & Guestlist</h1>
+          <h1 class="font-cinzel font-bold text-base text-amber-300 leading-tight">Izhar-e-Diwali - Gate Scanner & Guestlist</h1>
           <p class="text-[11px] text-amber-200/60" id="headerEventName">Urban Forest Cafe & Restaurant</p>
         </div>
       </div>
@@ -969,11 +969,11 @@
 
     function whatsappGeneratedLink() {
       if (!lastGeneratedLink) return;
-      const text = `🌙 *Sufi Night Pass Claim Link* 🎶\n\n` +
-                   `Hi! Here is your private link to claim your entry pass for Sufi Night on *Wednesday, 11th November • 7:00 PM Onwards* at *Urban Forest Cafe and Restaurant*:\n\n` +
+      const text = `🌙 *Izhar-e-Diwali Pass Claim Link* 🪔🎶\n\n` +
+                   `Hi! Here is your private link to claim your entry pass for Izhar-e-Diwali on *Wednesday, 11th November • 7:00 PM Onwards* at *Urban Forest Cafe and Restaurant*:\n\n` +
                    `🔗 ${lastGeneratedLink}\n\n` +
                    `⚠️ *Note:* This is a single-use private link. Once you submit your details, your pass will be locked to your name.\n\n` +
-                   `See you for an enchanting musical evening! ✨`;
+                   `See you for an enchanting evening of music & poetry! ✨`;
       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
     }
 
@@ -1037,11 +1037,11 @@
     }
 
     function whatsappSpecificLink(url, note) {
-      const text = `🌙 *Sufi Night Pass Claim Link* 🎶\n\n` +
-                   `Hi! Here is your private link to claim your entry pass for Sufi Night on *Wednesday, 11th November • 7:00 PM Onwards* at *Urban Forest Cafe and Restaurant*:\n\n` +
+      const text = `🌙 *Izhar-e-Diwali Pass Claim Link* 🪔🎶\n\n` +
+                   `Hi! Here is your private link to claim your entry pass for Izhar-e-Diwali on *Wednesday, 11th November • 7:00 PM Onwards* at *Urban Forest Cafe and Restaurant*:\n\n` +
                    `🔗 ${url}\n\n` +
                    `⚠️ *Note:* This is a single-use private link. Once you submit your details, your pass is confirmed.\n\n` +
-                   `See you for an enchanting musical evening! ✨`;
+                   `See you for an enchanting evening of music & poetry! ✨`;
       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
     }
 

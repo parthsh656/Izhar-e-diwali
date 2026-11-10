@@ -90,7 +90,7 @@
     <div class="flex items-center space-x-2">
       <span class="text-3xl moon-glow">🌙</span>
       <div>
-        <span class="font-cinzel font-bold text-base text-amber-300 tracking-wider block">SUFI NIGHT LIVE</span>
+        <span class="font-cinzel font-bold text-base text-amber-300 tracking-wider block">IZHAR-E-DIWALI</span>
         <span class="text-[10px] text-amber-200/60 uppercase tracking-widest">Urban Forest Cafe & Restaurant</span>
       </div>
     </div>
@@ -232,7 +232,7 @@
           <div class="flex items-center space-x-2">
             <span class="text-2xl moon-glow">🌙</span>
             <div>
-              <span class="font-cinzel font-black text-sm text-amber-300 tracking-wider block">SUFI NIGHT ENTRY PASS</span>
+              <span class="font-cinzel font-black text-sm text-amber-300 tracking-wider block">IZHAR-E-DIWALI PASS</span>
               <span class="text-[10px] text-amber-400/80 uppercase tracking-widest font-semibold" id="ticketPassType">COUPLE PASS</span>
             </div>
           </div>
@@ -359,14 +359,14 @@
     function shareWhatsApp() {
       if (!currentGuest) return;
       const passUrl = window.location.origin + '/pass/' + currentGuest.code;
-      const text = `🌙 *Sufi Night Pass Confirmed!* 🎶\n\n` +
+      const text = `🌙 *Izhar-e-Diwali Pass Confirmed!* 🪔🎶\n\n` +
                    `Guest: *${currentGuest.name}*\n` +
                    `Admit: *${currentGuest.pass_count} Person(s)*\n` +
                    `Pass Code: *${currentGuest.code}*\n` +
                    `Date: *11th November • 7:00 PM Onwards*\n` +
                    `Venue: *Urban Forest Cafe and Restaurant*\n\n` +
                    `Digital Pass Link:\n${passUrl}\n\n` +
-                   `See you for an enchanting musical night! ✨`;
+                   `See you for an enchanting evening of music & poetry! ✨`;
       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
     }
 

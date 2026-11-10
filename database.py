@@ -143,13 +143,13 @@ def init_db():
             """)
 
         defaults = {
-            "event_name": "Sufi Night Live at Urban Forest 🌙✨",
+            "event_name": "Izhar-e-Diwali 🌙🪔✨",
             "event_date": "Wednesday, November 11, 2026",
             "event_time": "7:00 PM Onwards",
             "event_venue": "Urban Forest Cafe and Restaurant",
             "event_location_url": "https://share.google/jryj9S1RXIgA4fnN7",
             "event_contact": "+91 63750 96687",
-            "event_description": "An enchanting evening of soulful Sufi music, live melodies, mystic vibes, and exquisite dining under the stars at Urban Forest Cafe!",
+            "event_description": "An enchanting evening of soulful Sufi music, live poetry, acoustic melodies, and festive dining under the stars at Urban Forest Cafe!",
             "admin_pin": "urban2026"
         }
 
@@ -162,7 +162,7 @@ def init_db():
     finally:
         conn.close()
 
-def generate_unique_code(prefix: str = "SUFI") -> str:
+def generate_unique_code(prefix: str = "IZHAR") -> str:
     chars = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"
     while True:
         suffix = "".join(random.choices(chars, k=5))
@@ -205,9 +205,9 @@ def get_guest_by_code(code: str) -> Optional[Dict[str, Any]]:
     # 1. Direct code match
     row = execute_query("SELECT * FROM guests WHERE UPPER(code) = UPPER(?)", (query,), fetch="one")
     
-    # 2. Match without 'SUFI-' or 'DWL-' prefix
+    # 2. Match without 'IZHAR-', 'SUFI-' or 'DWL-' prefix
     if not row:
-        for pfx in ["SUFI-", "DWL-"]:
+        for pfx in ["IZHAR-", "SUFI-", "DWL-"]:
             if not query.upper().startswith(pfx):
                 row = execute_query("SELECT * FROM guests WHERE UPPER(code) = UPPER(?)", (f"{pfx}{query}",), fetch="one")
                 if row:
@@ -241,7 +241,7 @@ def check_in_guest(code: str, checked_by: str = "Gate Staff") -> Dict[str, Any]:
     
     # 2. Pass code without prefix
     if not row:
-        for pfx in ["SUFI-", "DWL-"]:
+        for pfx in ["IZHAR-", "SUFI-", "DWL-"]:
             if not query.upper().startswith(pfx):
                 row = execute_query("SELECT * FROM guests WHERE UPPER(code) = UPPER(?)", (f"{pfx}{query}",), fetch="one")
                 if row:
