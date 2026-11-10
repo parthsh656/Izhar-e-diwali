@@ -143,14 +143,14 @@ def init_db():
             """)
 
         defaults = {
-            "event_name": "Diwali Dhoom & Gala Night 🪔",
-            "event_date": "Saturday, November 7, 2026",
+            "event_name": "Sufi Night Live at Urban Forest 🌙✨",
+            "event_date": "Wednesday, November 11, 2026",
             "event_time": "7:00 PM Onwards",
             "event_venue": "Urban Forest Cafe and Restaurant",
             "event_location_url": "https://share.google/jryj9S1RXIgA4fnN7",
             "event_contact": "+91 63750 96687",
-            "event_description": "Join us for an evening of festive lights, music, DJ, delicious dinner, fireworks and celebrations at Urban Forest Cafe!",
-            "admin_pin": "diwali2026"
+            "event_description": "An enchanting evening of soulful Sufi music, live melodies, mystic vibes, and exquisite dining under the stars at Urban Forest Cafe!",
+            "admin_pin": "urban2026"
         }
 
         insert_setting_sql = "INSERT INTO event_settings (key, value) VALUES (%s, %s) ON CONFLICT (key) DO NOTHING" if IS_POSTGRES else "INSERT OR IGNORE INTO event_settings (key, value) VALUES (?, ?)"
@@ -162,7 +162,7 @@ def init_db():
     finally:
         conn.close()
 
-def generate_unique_code(prefix: str = "DWL") -> str:
+def generate_unique_code(prefix: str = "SUFI") -> str:
     chars = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"
     while True:
         suffix = "".join(random.choices(chars, k=5))
@@ -180,7 +180,7 @@ def update_settings(settings: Dict[str, str]):
         execute_query(sql, (k, v), commit=True)
 
 def add_guest(name: str, phone: str, email: Optional[str] = None, 
-              pass_count: int = 1, pass_type: str = "General", 
+              pass_count: int = 1, pass_type: str = "General Pass", 
               notes: Optional[str] = None) -> Dict[str, Any]:
     code = generate_unique_code()
     now_str = datetime.now().strftime("%Y-%m-%d %I:%M %p")
@@ -205,9 +205,13 @@ def get_guest_by_code(code: str) -> Optional[Dict[str, Any]]:
     # 1. Direct code match
     row = execute_query("SELECT * FROM guests WHERE UPPER(code) = UPPER(?)", (query,), fetch="one")
     
-    # 2. Match without 'DWL-' prefix
-    if not row and not query.upper().startswith("DWL-"):
-        row = execute_query("SELECT * FROM guests WHERE UPPER(code) = UPPER(?)", (f"DWL-{query}",), fetch="one")
+    # 2. Match without 'SUFI-' or 'DWL-' prefix
+    if not row:
+        for pfx in ["SUFI-", "DWL-"]:
+            if not query.upper().startswith(pfx):
+                row = execute_query("SELECT * FROM guests WHERE UPPER(code) = UPPER(?)", (f"{pfx}{query}",), fetch="one")
+                if row:
+                    break
         
     # 3. Match by Phone Number
     if not row:
@@ -236,8 +240,12 @@ def check_in_guest(code: str, checked_by: str = "Gate Staff") -> Dict[str, Any]:
     row = execute_query("SELECT * FROM guests WHERE UPPER(code) = UPPER(?)", (query,), fetch="one")
     
     # 2. Pass code without prefix
-    if not row and not query.upper().startswith("DWL-"):
-        row = execute_query("SELECT * FROM guests WHERE UPPER(code) = UPPER(?)", (f"DWL-{query}",), fetch="one")
+    if not row:
+        for pfx in ["SUFI-", "DWL-"]:
+            if not query.upper().startswith(pfx):
+                row = execute_query("SELECT * FROM guests WHERE UPPER(code) = UPPER(?)", (f"{pfx}{query}",), fetch="one")
+                if row:
+                    break
         
     # 3. Match phone number
     if not row:

@@ -28,11 +28,11 @@
             sans: ['Outfit', 'sans-serif'],
           },
           colors: {
-            diwali: {
+            sufi: {
               gold: '#F59E0B',
               amber: '#D97706',
-              deep: '#0F051D',
-              purple: '#1E0B36',
+              emerald: '#0B332B',
+              night: '#041614',
               glow: '#FFD700'
             }
           }
@@ -42,12 +42,12 @@
   </script>
   <style>
     body {
-      background: radial-gradient(circle at 50% 20%, #2a0b45 0%, #120324 50%, #080112 100%);
+      background: radial-gradient(circle at 50% 20%, #0d3b36 0%, #061c18 50%, #020b0a 100%);
       color: #F3F4F6;
       min-height: 100vh;
     }
     .gold-gradient-text {
-      background: linear-gradient(135deg, #FFF6D1 0%, #FFD700 50%, #F59E0B 100%);
+      background: linear-gradient(135deg, #FFF8E1 0%, #FFD700 45%, #F59E0B 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
@@ -55,13 +55,13 @@
       background: linear-gradient(135deg, #F59E0B 0%, #D97706 50%, #B45309 100%);
     }
     .card-glass {
-      background: rgba(30, 11, 54, 0.7);
+      background: rgba(8, 36, 32, 0.72);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(245, 158, 11, 0.25);
+      border: 1px solid rgba(245, 158, 11, 0.28);
     }
     .ticket-glass {
-      background: linear-gradient(145deg, rgba(42, 13, 70, 0.95), rgba(20, 5, 36, 0.98));
+      background: linear-gradient(145deg, rgba(11, 45, 40, 0.96), rgba(4, 18, 16, 0.98));
       border: 2px solid #F59E0B;
       box-shadow: 0 0 35px rgba(245, 158, 11, 0.35);
       position: relative;
@@ -70,7 +70,7 @@
       position: absolute;
       width: 24px;
       height: 24px;
-      background: #080112;
+      background: #020b0a;
       border-radius: 50%;
       top: 65%;
       transform: translateY(-50%);
@@ -78,8 +78,8 @@
     }
     .ticket-notch-left { left: -14px; border-right: 2px solid #F59E0B; }
     .ticket-notch-right { right: -14px; border-left: 2px solid #F59E0B; }
-    .diya-glow {
-      filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.8));
+    .moon-glow {
+      filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.85));
     }
   </style>
 </head>
@@ -88,9 +88,9 @@
   <!-- Header Nav -->
   <nav class="max-w-2xl mx-auto mb-6 flex items-center justify-between">
     <div class="flex items-center space-x-2">
-      <span class="text-3xl diya-glow">🪔</span>
+      <span class="text-3xl moon-glow">🌙</span>
       <div>
-        <span class="font-cinzel font-bold text-base text-amber-300 tracking-wider block">DIWALI GALA PASS</span>
+        <span class="font-cinzel font-bold text-base text-amber-300 tracking-wider block">SUFI NIGHT LIVE</span>
         <span class="text-[10px] text-amber-200/60 uppercase tracking-widest">Urban Forest Cafe & Restaurant</span>
       </div>
     </div>
@@ -118,7 +118,7 @@
         <i class="fa-solid fa-lock"></i>
       </div>
       <h2 class="text-2xl font-cinzel font-bold text-amber-300">Invite Link Already Claimed</h2>
-      <div class="bg-black/40 border border-amber-500/30 rounded-xl p-4 text-xs text-amber-200/90 space-y-2 max-w-md mx-auto">
+      <div class="bg-black/45 border border-amber-500/30 rounded-xl p-4 text-xs text-amber-200/90 space-y-2 max-w-md mx-auto">
         <p>This 1-time private link was already used to register by:</p>
         <p class="text-base font-bold text-white">{{ token.used_by_name }}</p>
         <p class="text-[11px] text-gray-400">Claimed at: {{ token.used_at }}</p>
@@ -154,7 +154,7 @@
       </div>
 
       <!-- Pre-paid Entitlement Badge -->
-      <div class="bg-gradient-to-r from-amber-500/20 via-purple-500/20 to-amber-500/20 border border-amber-500/40 rounded-xl p-3.5 flex items-center justify-between text-xs">
+      <div class="bg-gradient-to-r from-amber-500/20 via-teal-500/20 to-amber-500/20 border border-amber-500/40 rounded-xl p-3.5 flex items-center justify-between text-xs">
         <div>
           <span class="text-[10px] text-amber-200/60 uppercase tracking-wider block font-semibold">Your Pre-Paid Pass</span>
           <span class="font-bold text-amber-300 text-sm">Admit: {{ token.pass_count }} Person{{ 's' if token.pass_count > 1 else '' }}</span>
@@ -179,7 +179,7 @@
               <i class="fa-regular fa-user"></i>
             </span>
             <input type="text" id="guestName" required placeholder="e.g. Rahul Sharma"
-              class="w-full pl-10 pr-4 py-2.5 bg-black/40 border border-amber-500/30 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-amber-400 text-sm">
+              class="w-full pl-10 pr-4 py-2.5 bg-black/45 border border-amber-500/30 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-amber-400 text-sm">
           </div>
         </div>
 
@@ -192,16 +192,16 @@
               <i class="fa-solid fa-phone"></i>
             </span>
             <input type="tel" id="guestPhone" required placeholder="10-digit mobile number"
-              class="w-full pl-10 pr-4 py-2.5 bg-black/40 border border-amber-500/30 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-amber-400 text-sm">
+              class="w-full pl-10 pr-4 py-2.5 bg-black/45 border border-amber-500/30 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-amber-400 text-sm">
           </div>
         </div>
 
         <div>
           <label class="block text-xs font-medium text-amber-200/80 uppercase tracking-wider mb-1.5">
-            Special Notes / Dietary Preference <span class="text-amber-200/40 text-[10px] normal-case">(optional)</span>
+            Special Requests / Table Preference <span class="text-amber-200/40 text-[10px] normal-case">(optional)</span>
           </label>
-          <input type="text" id="guestNotes" placeholder="e.g. Pure Veg, Jain, arriving by 8 PM"
-            class="w-full px-4 py-2.5 bg-black/40 border border-amber-500/30 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-amber-400 text-sm">
+          <input type="text" id="guestNotes" placeholder="e.g. Outdoor garden seating, Veg food, arriving by 7:30 PM"
+            class="w-full px-4 py-2.5 bg-black/45 border border-amber-500/30 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-amber-400 text-sm">
         </div>
 
         <button type="submit" id="claimBtn"
@@ -219,8 +219,8 @@
           <i class="fa-solid fa-circle-check"></i>
           <span>Pass Claimed & Confirmed!</span>
         </div>
-        <h2 class="text-2xl font-cinzel font-bold text-amber-300">Your Diwali Gala Entry Pass</h2>
-        <p class="text-xs text-amber-200/70">Show this QR code at the entrance gate of Urban Forest Cafe.</p>
+        <h2 class="text-2xl font-cinzel font-bold text-amber-300">Your Sufi Night Entry Pass</h2>
+        <p class="text-xs text-amber-200/70">Show this QR code at the entrance of Urban Forest Cafe.</p>
       </div>
 
       <!-- THE TICKET -->
@@ -230,10 +230,10 @@
 
         <div class="flex items-center justify-between pb-4 border-b border-dashed border-amber-500/40">
           <div class="flex items-center space-x-2">
-            <span class="text-2xl diya-glow">🪔</span>
+            <span class="text-2xl moon-glow">🌙</span>
             <div>
-              <span class="font-cinzel font-black text-sm text-amber-300 tracking-wider block">DIWALI CELEBRATION PASS</span>
-              <span class="text-[10px] text-amber-400/80 uppercase tracking-widest font-semibold" id="ticketPassType">GENERAL PASS</span>
+              <span class="font-cinzel font-black text-sm text-amber-300 tracking-wider block">SUFI NIGHT ENTRY PASS</span>
+              <span class="text-[10px] text-amber-400/80 uppercase tracking-widest font-semibold" id="ticketPassType">COUPLE PASS</span>
             </div>
           </div>
           <span class="inline-block bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full">
@@ -334,14 +334,14 @@
             text: passUrl,
             width: 100,
             height: 100,
-            colorDark: "#1E0B36",
+            colorDark: "#041614",
             colorLight: "#FFFFFF",
             correctLevel: QRCode.CorrectLevel.H
           });
 
           confetti({
-            particleCount: 80,
-            spread: 70,
+            particleCount: 90,
+            spread: 75,
             origin: { y: 0.6 },
             colors: ['#FFD700', '#F59E0B', '#10B981']
           });
@@ -359,22 +359,23 @@
     function shareWhatsApp() {
       if (!currentGuest) return;
       const passUrl = window.location.origin + '/pass/' + currentGuest.code;
-      const text = `🪔 *Diwali Party Pass Confirmed!* 🪔\n\n` +
+      const text = `🌙 *Sufi Night Pass Confirmed!* 🎶\n\n` +
                    `Guest: *${currentGuest.name}*\n` +
                    `Admit: *${currentGuest.pass_count} Person(s)*\n` +
                    `Pass Code: *${currentGuest.code}*\n` +
-                   `Venue: Urban Forest Cafe and Restaurant\n\n` +
+                   `Date: *11th November • 7:00 PM Onwards*\n` +
+                   `Venue: *Urban Forest Cafe and Restaurant*\n\n` +
                    `Digital Pass Link:\n${passUrl}\n\n` +
-                   `See you at the celebration! ✨`;
+                   `See you for an enchanting musical night! ✨`;
       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
     }
 
     async function downloadPassImage() {
       const ticketElem = document.getElementById('printablePass');
       try {
-        const canvas = await html2canvas(ticketElem, { scale: 2, backgroundColor: '#0F051D', useCORS: true });
+        const canvas = await html2canvas(ticketElem, { scale: 2, backgroundColor: '#041614', useCORS: true });
         const link = document.createElement('a');
-        link.download = `Diwali_Pass_${currentGuest.code}.png`;
+        link.download = `SufiNight_Pass_${currentGuest.code}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
       } catch (e) {

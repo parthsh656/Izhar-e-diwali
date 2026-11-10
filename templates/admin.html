@@ -38,21 +38,21 @@
   </script>
   <style>
     body {
-      background: radial-gradient(circle at 50% 10%, #200836 0%, #100220 50%, #080112 100%);
+      background: radial-gradient(circle at 50% 10%, #0d3b36 0%, #061c18 50%, #020b0a 100%);
       color: #F3F4F6;
       min-height: 100vh;
     }
     .card-glass {
-      background: rgba(26, 9, 46, 0.7);
+      background: rgba(8, 36, 32, 0.72);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(245, 158, 11, 0.2);
+      border: 1px solid rgba(245, 158, 11, 0.25);
     }
     .gold-gradient-bg {
       background: linear-gradient(135deg, #F59E0B 0%, #D97706 50%, #B45309 100%);
     }
     .gold-gradient-text {
-      background: linear-gradient(135deg, #FFF6D1 0%, #FFD700 50%, #F59E0B 100%);
+      background: linear-gradient(135deg, #FFF8E1 0%, #FFD700 45%, #F59E0B 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
@@ -67,12 +67,12 @@
   <!-- PIN Protection Overlay -->
   <div id="pinOverlay" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
     <div class="card-glass max-w-sm w-full p-6 rounded-2xl border border-amber-500/40 text-center space-y-4">
-      <span class="text-3xl">🪔</span>
+      <span class="text-3xl">🌙</span>
       <h2 class="text-xl font-cinzel font-bold text-amber-300">Organizer Access</h2>
       <p class="text-xs text-amber-200/70">Enter the Admin PIN to access the gate scanner and guestlist.</p>
       
       <form onsubmit="handlePinSubmit(event)" class="space-y-3">
-        <input type="password" id="adminPinInput" placeholder="Enter PIN (Default: diwali2026)"
+        <input type="password" id="adminPinInput" placeholder="Enter PIN (Default: urban2026)"
           class="w-full px-4 py-2.5 bg-black/60 border border-amber-500/40 rounded-xl text-center text-white placeholder-gray-500 tracking-wider focus:outline-none focus:border-amber-400">
         
         <button type="submit" class="w-full py-2.5 rounded-xl font-bold text-black gold-gradient-bg hover:brightness-110 transition">
@@ -80,7 +80,7 @@
         </button>
       </form>
       <div id="pinError" class="text-xs text-rose-400 min-h-[16px]"></div>
-      <div class="text-[11px] text-gray-500">Default PIN: <code class="text-amber-400">diwali2026</code></div>
+      <div class="text-[11px] text-gray-500">Default PIN: <code class="text-amber-400">urban2026</code></div>
     </div>
   </div>
 
@@ -88,10 +88,10 @@
   <header class="border-b border-amber-500/20 bg-black/40 backdrop-blur-md sticky top-0 z-30">
     <div class="max-w-6xl mx-auto px-4 py-3.5 flex items-center justify-between">
       <div class="flex items-center space-x-3">
-        <a href="/" class="text-2xl hover:scale-110 transition">🪔</a>
+        <a href="/" class="text-2xl hover:scale-110 transition">🌙</a>
         <div>
-          <h1 class="font-cinzel font-bold text-base text-amber-300 leading-tight">Organizer & Gate Dashboard</h1>
-          <p class="text-[11px] text-amber-200/60" id="headerEventName">Diwali Celebration Portal</p>
+          <h1 class="font-cinzel font-bold text-base text-amber-300 leading-tight">Sufi Night - Gate Scanner & Guestlist</h1>
+          <p class="text-[11px] text-amber-200/60" id="headerEventName">Urban Forest Cafe & Restaurant</p>
         </div>
       </div>
       <div class="flex items-center space-x-3">
@@ -969,11 +969,11 @@
 
     function whatsappGeneratedLink() {
       if (!lastGeneratedLink) return;
-      const text = `🪔 *Diwali Party Pass Claim Link* 🪔\n\n` +
-                   `Hi! Here is your private link to claim your official entry pass for Diwali Gala Night at *Urban Forest Cafe and Restaurant*:\n\n` +
+      const text = `🌙 *Sufi Night Pass Claim Link* 🎶\n\n` +
+                   `Hi! Here is your private link to claim your entry pass for Sufi Night on *Wednesday, 11th November • 7:00 PM Onwards* at *Urban Forest Cafe and Restaurant*:\n\n` +
                    `🔗 ${lastGeneratedLink}\n\n` +
                    `⚠️ *Note:* This is a single-use private link. Once you submit your details, your pass will be locked to your name.\n\n` +
-                   `See you there! ✨`;
+                   `See you for an enchanting musical evening! ✨`;
       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
     }
 
@@ -1037,11 +1037,11 @@
     }
 
     function whatsappSpecificLink(url, note) {
-      const text = `🪔 *Diwali Party Pass Claim Link* 🪔\n\n` +
-                   `Hi! Here is your private link to claim your entry pass for Diwali Gala Night at *Urban Forest Cafe and Restaurant*:\n\n` +
+      const text = `🌙 *Sufi Night Pass Claim Link* 🎶\n\n` +
+                   `Hi! Here is your private link to claim your entry pass for Sufi Night on *Wednesday, 11th November • 7:00 PM Onwards* at *Urban Forest Cafe and Restaurant*:\n\n` +
                    `🔗 ${url}\n\n` +
                    `⚠️ *Note:* This is a single-use private link. Once you submit your details, your pass is confirmed.\n\n` +
-                   `See you there! ✨`;
+                   `See you for an enchanting musical evening! ✨`;
       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
     }
 
